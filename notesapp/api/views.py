@@ -18,14 +18,20 @@ class CategoryApiView(APIView):
 
 class NoteApiView(APIView):
     def get(self, request):
-        notes = Note.objects.annotate(
-            name=Subquery(
-                Category.objects.filter(
-                id=OuterRef('categoryId')
-                ).values('name')
-            ))
-        notes_serializer = NoteListSerializer(notes, many=True)
-        return Response(status=status.HTTP_200_OK, data=notes_serializer.data)
+        pk = request.GET.get('id', None)
+        if not pk:
+            notes = Note.objects.annotate(
+                name=Subquery(
+                    Category.objects.filter(
+                    id=OuterRef('categoryId')
+                    ).values('name')
+                ))
+            notes_serializer = NoteListSerializer(notes, many=True)
+            return Response(status=status.HTTP_200_OK, data=notes_serializer.data)
+        else:
+            note = Note.objects.get(pk=pk)
+            notes_serializer = NoteSerializer(note)
+            return Response(status=status.HTTP_200_OK, data=notes_serializer.data)
     
     def post(self, request):
         notes_serializer = NoteSerializer(data=request.POST)
@@ -42,3 +48,5 @@ class NoteApiView(APIView):
         notes_serializer.is_valid(raise_exception=True)
         notes_serializer.save()
         return Response(status=status.HTTP_200_OK, data=notes_serializer.data)
+    
+
