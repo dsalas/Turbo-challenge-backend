@@ -7,7 +7,7 @@ class Note(models.Model):
     body = models.CharField(max_length=500)
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
-    categoryId = models.IntegerField()
+    categoryId = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True)
 
 class Category(models.Model):
     id  = models.AutoField(primary_key=True)

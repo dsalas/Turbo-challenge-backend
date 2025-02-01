@@ -1,23 +1,30 @@
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from notesapp.models import Category
 from notesapp.models import Note
 from notesapp.api.serializers import CategorySerializer
-from notesapp.api.serializers import NoteSerializer
+from notesapp.api.serializers import NoteSerializer,NoteListSerializer
+from django.db.models import Count
+from django.db.models import OuterRef, Subquery
+from django.db.models import F
 
 class CategoryApiView(APIView):
     def get(self, request):
-        cateogries = Category.objects.all()
+        cateogries = Category.objects.annotate(num_notes=Count('note'))
         categories_serializer = CategorySerializer(cateogries, many=True)
         return Response(status=status.HTTP_200_OK, data=categories_serializer.data)
     
 
 class NoteApiView(APIView):
     def get(self, request):
-        notes = Note.objects.all()
-        notes_serializer = NoteSerializer(notes, many=True)
+        notes = Note.objects.annotate(
+            name=Subquery(
+                Category.objects.filter(
+                id=OuterRef('categoryId')
+                ).values('name')
+            ))
+        notes_serializer = NoteListSerializer(notes, many=True)
         return Response(status=status.HTTP_200_OK, data=notes_serializer.data)
     
     def post(self, request):
