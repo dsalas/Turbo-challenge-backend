@@ -19,15 +19,16 @@ class CategoryApiView(APIView):
 class NoteApiView(APIView):
     def get(self, request):
         pk = request.GET.get('id', None)
-        if not pk:
+        if not pk:  
             notes = Note.objects.annotate(
-                name=Subquery(
-                    Category.objects.filter(
-                    id=OuterRef('categoryId')
-                    ).values('name')
-                ))
+                    name=Subquery(
+                        Category.objects.filter(
+                        id=OuterRef('categoryId')
+                        ).values('name')
+                    ))
             notes_serializer = NoteListSerializer(notes, many=True)
             return Response(status=status.HTTP_200_OK, data=notes_serializer.data)
+            #return Response(status=status.HTTP_200_OK, data="")
         else:
             note = Note.objects.get(pk=pk)
             notes_serializer = NoteSerializer(note)
